@@ -1,0 +1,33 @@
+#dsfsd
+
+processors      * * 1
+
+units           real
+atom_style      charge
+boundary	p p p
+
+read_data    	qH.data
+
+replicate	3 3 1
+
+pair_style  	reax/c NULL safezone 3 mincap 200
+pair_coeff 	* * ffield.reax.c_defects2017 C
+fix         	1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+
+compute 	msd all msd
+
+thermo_style    custom  atoms step time cpu temp pe ke etotal press pxx pyy pzz lx ly c_msd[4]
+thermo          1000
+thermo_modify  	flush yes
+
+timestep	0.25
+
+comm_style     	brick
+fix            	4 all balance 1000 1.05 shift xyz 5 1.05
+
+dump		1 all cfg 10000 ./cfg/p2000.*.cfg mass type xs ys zs
+dump_modify 	1 element C
+dump 		2 all custom 10000  ./pos/c2000.*.pos id type x y z xu yu zu
+
+fix		2 all npt temp 1100 5100 10 x 0 0 5000 y 0 0 5000
+run		4000000
